@@ -1,0 +1,1293 @@
+hadoop version
+which hadoop
+java -version
+hdfs version
+start-dfs.sh
+start-yarn.sh
+jps
+hdfs dfsadmin -report
+stop-dfs.sh
+
+
+
+
+
+| No. | Command | Description |
+| 1 | hdfs dfs -ls / | Lists files and dire
+ctories. |
+| 2 | hdfs dfs -mkdir /exam | Creates a directory. |
+| 3 | hdfs dfs -ls /exam | Lists the contents of a directory. |
+| 4 | hdfs dfs -mkdir /exam/input | Creates a subdirectory. |
+| 5 | hdfs dfs -rmdir /exam/input| Removes an empty directory. |
+| 6 | hdfs dfs -put sample.txt /exam/| Uploads a local file to HDFS. |
+| 7 | hdfs dfs -cat /exam/sample.txt | Displays file contents. |
+| 8 | hdfs dfs -get /exam/sample.txt downloaded.txt | Downloads a file from HDFS. |
+| 9 | hdfs dfs -cp /exam/sample.txt /exam/sample_copy.txt| Copies a file within HDFS. |
+| 10 | hdfs dfs -mv /exam/sample_copy.txt /exam/renamed.txt| Moves or renames a file. |
+| 11 | hdfs dfs -du -h /exam| Displays file sizes in a readable format. |
+| 12 | hdfs dfs -count /exam | Counts directories and files and reports content size. |
+| 13 | hdfs dfs -touchz /exam/empty.txt | Creates an empty file. |
+| 14 | hdfs dfs -rm /exam/empty.txt| Deletes a file. |
+| 15 | hdfs dfs -rm -r /exam| Deletes a directory and its contents recursively. |
+
+
+
+
+
+
+java -version
+hadoop version
+jps
+start-dfs.sh
+start-yarn.sh
+hdfs dfs -ls /
+sqoop version
+mysql --version
+sudo systemctl status mysql
+password xyz
+sudo systemctl is-active mysql
+exit using q
+sudo mysql
+
+CREATE DATABASE IF NOT EXISTS college;
+
+USE college;
+
+CREATE TABLE IF NOT EXISTS Faculty (
+    faculty_id INT PRIMARY KEY,
+    faculty_name VARCHAR(50),
+    department VARCHAR(30),
+    salary INT
+);
+
+INSERT IGNORE INTO Faculty VALUES
+(1, 'Amit', 'CSE', 50000),
+(2, 'Priya', 'IT', 45000),
+(3, 'Rahul', 'CSE', 55000),
+(4, 'Sneha', 'ENTC', 40000),
+(5, 'Neha', 'IT', 48000);
+
+SELECT * FROM Faculty;
+
+EXIT;
+sudo mysql
+
+CREATE USER IF NOT EXISTS 'sqoopuser'@'localhost'
+IDENTIFIED BY 'SqoopPass123!';
+
+GRANT ALL PRIVILEGES ON college.* TO 'sqoopuser'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+
+mysql -u sqoopuser -p -D college
+
+password -SqoopPass123!
+EXIT
+
+sqoop list-tables \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+-P
+
+password-SqoopPass123!
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+-P \
+--table Faculty \
+--target-dir /user/user/faculty_data \
+-m 1
+password-SqoopPass123!
+
+hdfs dfs -ls /user/user/faculty_data
+
+hdfs dfs -cat /user/user/faculty_data/part-m-00000
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+-P \
+--table Faculty \
+--where "department='CSE'" \
+--target-dir /user/user/faculty_cse \
+-m 1
+
+mysql -u sqoopuser -p -D college
+hdfs dfs -ls /user/user/faculty_cse
+
+hdfs dfs -cat /user/user/faculty_cse/part-m-00000
+
+Import using password 
+printf '%s' 'SqoopPass123!' > ~/.sqoop_password
+
+chmod 600 ~/.sqoop_password
+
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+--password-file "file://$HOME/.sqoop_password" \
+--table Faculty \
+--target-dir /user/user/faculty_password \
+-m 1
+
+hdfs dfs -cat /user/user/faculty_password/part-m-00000
+
+
+mysql -u sqoopuser -p -D college
+
+//compression
+
+sqoop import \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+-P \
+--table Faculty \
+--target-dir /user/user/faculty_compressed \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.GzipCodec \
+-m 1
+
+
+
+
+
+CREATE TABLE Faculty_Export (
+    faculty_id INT,
+    faculty_name VARCHAR(50),
+    department VARCHAR(30),
+    salary INT
+);
+
+EXIT;
+
+
+sqoop export \
+--connect jdbc:mysql://localhost:3306/college \
+--username sqoopuser \
+-P \
+--table Faculty_Export \
+--export-dir /user/user/faculty_data \
+-m 1
+
+
+mysql -u sqoopuser -p -D college
+SELECT * FROM Faculty_Export;
+EXIT;
+
+
+
+--------------------------------------------------------------------------
+
+
+java -version
+javac -version
+hadoop version
+jps
+start-dfs.sh
+start-yarn.sh
+hdfs dfs -ls /
+
+
+mkdir -p ~/DistinctWordCount
+cd ~/DistinctWordCount
+nano input.txt
+
+Hadoop is a big data technology
+Hadoop is used for big data processing
+MapReduce is a Hadoop framework
+Big data is important
+
+Save the file:
+- Press Ctrl + O
+- Press Enter
+- Press Ctrl + X
+
+cat input.txt
+hdfs dfs -mkdir -p /experiment3/input
+hdfs dfs -put -f input.txt /experiment3/input/
+hdfs dfs -ls /experiment3/input
+hdfs dfs -cat /experiment3/input/input.txt
+
+~/DistinctWordCount
+nano DistinctWordCount.java
+
+
+code
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class DistinctWordCount {
+
+    // Mapper Class
+    public static class WordMapper
+            extends Mapper<Object, Text, Text, IntWritable> {
+
+        private Text word = new Text();
+        private final static IntWritable one = new IntWritable(1);
+
+        public void map(Object key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+            StringTokenizer tokenizer = new StringTokenizer(value.toString());
+
+            while (tokenizer.hasMoreTokens()) {
+                String token = tokenizer.nextToken()
+                        .toLowerCase()
+                        .replaceAll("[^a-z0-9]", "");
+
+                if (!token.isEmpty()) {
+                    word.set(token);
+                    context.write(word, one);
+                }
+            }
+        }
+    }
+
+    // Reducer Class
+    public static class DistinctWordReducer
+            extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+        private IntWritable result = new IntWritable(1);
+
+        public void reduce(Text key, Iterable<IntWritable> values,
+                           Context context)
+                throws IOException, InterruptedException {
+
+            context.write(key, result);
+        }
+    }
+
+    // Driver Class
+    public static void main(String[] args) throws Exception {
+
+        Configuration conf = new Configuration();
+
+        Job job = Job.getInstance(conf, "Distinct Word Count");
+
+        job.setJarByClass(DistinctWordCount.class);
+
+        job.setMapperClass(WordMapper.class);
+        job.setReducerClass(DistinctWordReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+
+----------------------
+
+Save using Ctrl + O, Enter, and Ctrl + X.
+
+hadoop com.sun.tools.javac.Main DistinctWordCount.java
+ls
+jar cf distinctword.jar DistinctWordCount*.class
+
+javac -classpath "$(hadoop classpath)" DistinctWordCount.java
+
+hdfs dfs -rm -r -f /exp/output
+output
+
+DistinctWordCount.class
+DistinctWordCount$WordMapper.class
+DistinctWordCount$DistinctWordReducer.class
+
+jar cf distinctwordcount.jar DistinctWordCount*.class
+ls
+hdfs dfs -rm -r -f /experiment3/output
+
+hadoop jar distinctwordcount.jar DistinctWordCount /experiment3/input /experiment3/output
+
+
+hdfs dfs -cat /experiment3/output/part-r-00000
+
+
+
+
+
+
+
+
+-------------------------------------------------
+
+
+Matrix mul
+
+nano matrixA.txt
+
+A,0,0,1
+A,0,1,2
+A,1,0,3
+A,1,1,4
+
+
+nano matrixB.txt
+
+B,0,0,5
+B,0,1,6
+B,1,0,7
+B,1,1,8
+
+hdfs dfs -mkdir -p /matrix/input
+
+hdfs dfs -put -f matrixA.txt /matrix/input/
+hdfs dfs -put -f matrixB.txt /matrix/input/
+
+hdfs dfs -ls /matrix/input
+matrixA.txt
+matrixB.txt
+nano MatrixMultiplication.java
+------------------------------------
+
+```java
+import java.io.IOException;
+import java.util.*;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class MatrixMultiplication {
+
+    // Mapper Class
+    public static class MatrixMapper
+            extends Mapper<LongWritable, Text, Text, Text> {
+
+        public void map(LongWritable key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+            String[] parts = value.toString().split(",");
+
+            String matrix = parts[0];
+            int row = Integer.parseInt(parts[1]);
+            int col = Integer.parseInt(parts[2]);
+            int val = Integer.parseInt(parts[3]);
+
+            if (matrix.equals("A")) {
+                for (int j = 0; j < 2; j++) {
+                    context.write(
+                        new Text(row + "," + j),
+                        new Text("A," + col + "," + val)
+                    );
+                }
+            } else if (matrix.equals("B")) {
+                for (int i = 0; i < 2; i++) {
+                    context.write(
+                        new Text(i + "," + col),
+                        new Text("B," + row + "," + val)
+                    );
+                }
+            }
+        }
+    }
+
+    // Reducer Class
+    public static class MatrixReducer
+            extends Reducer<Text, Text, Text, IntWritable> {
+
+        public void reduce(Text key, Iterable<Text> values,
+                           Context context)
+                throws IOException, InterruptedException {
+
+            Map<Integer, Integer> matrixA = new HashMap<>();
+            Map<Integer, Integer> matrixB = new HashMap<>();
+
+            for (Text value : values) {
+                String[] parts = value.toString().split(",");
+
+                String matrix = parts[0];
+                int index = Integer.parseInt(parts[1]);
+                int val = Integer.parseInt(parts[2]);
+
+                if (matrix.equals("A")) {
+                    matrixA.put(index, val);
+                } else {
+                    matrixB.put(index, val);
+                }
+            }
+
+            int sum = 0;
+
+            for (int k = 0; k < 2; k++) {
+                sum += matrixA.get(k) * matrixB.get(k);
+            }
+
+            context.write(key, new IntWritable(sum));
+        }
+    }
+
+    // Driver Class
+    public static void main(String[] args) throws Exception {
+
+        Configuration conf = new Configuration();
+
+        Job job = Job.getInstance(conf, "Matrix Multiplication");
+
+        job.setJarByClass(MatrixMultiplication.class);
+
+        job.setMapperClass(MatrixMapper.class);
+        job.setReducerClass(MatrixReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+```
+-------------------------
+javac -classpath "$(hadoop classpath)" MatrixMultiplication.java
+jar cf matrixmultiplication.jar MatrixMultiplication*.class
+
+hdfs dfs -rm -r -f /matrix/output
+
+hdfs dfs -cat /matrix/output/part-r-00000
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------
+
+mongod --version
+mongod --version
+mongo --version
+sudo systemctl status mongod
+mongosh
+
+
+
+reate a new database
+Let's create a database named CollegeDB.
+
+use CollegeDB
+
+
+use StudentDB
+db.createCollection("students")
+
+
+db.students.insertMany([
+  {rollno: 1, name: "Rahul", department: "Computer", marks: 85},
+  {rollno: 2, name: "Priya", department: "IT", marks: 90},
+  {rollno: 3, name: "Amit", department: "Computer", marks: 78},
+  {rollno: 4, name: "Sneha", department: "IT", marks: 95}
+])
+
+db.students.find()
+
+db.students.find().pretty()
+
+db.students.find({name: "Rahul"})
+
+db.students.countDocuments()
+
+db.students.updateOne(
+  {name: "Rahul"},
+  {$set: {marks: 92}}
+)
+
+db.students.deleteOne({name: "Amit"})
+
+show collections
+
+db.students.stats()
+
+db.students.stats()
+-------------------------------------------------------------
+
+
+
+# PART 1 – AGRICULTURE DATASET
+
+## Step 1: Verify installations
+
+Execute in the Ubuntu terminal:
+
+```bash
+cd ~
+
+java -version
+javac -version
+hadoop version
+pig -version
+
+echo $HADOOP_HOME
+echo $JAVA_HOME
+
+jps
+
+
+## Step 2: Locate dataset
+
+```bash
+ls ~/Desktop
+
+find ~ -iname "crop_production.csv" 2>/dev/null
+```
+
+Our dataset is available at:
+
+```text
+/home/user/Downloads/crop_production.csv
+```
+
+## Step 3: Create working directory
+
+```bash
+mkdir -p ~/PigExperiment
+
+cp ~/Downloads/crop_production.csv ~/PigExperiment/
+
+cd ~/PigExperiment
+
+pwd
+
+ls
+```
+
+Expected file:
+
+```text
+crop_production.csv
+```
+
+Inspect the dataset:
+
+```bash
+head -5 crop_production.csv
+```
+
+Dataset columns:
+
+1. State_Name
+2. District_Name
+3. Crop_Year
+4. Season
+5. Crop
+6. Area
+7. Production
+
+## Step 4: Start Pig in Local Mode
+
+Before running Pig again, remove any previous output directory:
+
+```bash
+rm -rf ~/PigExperiment/top_crops_output
+```
+
+Start Pig:
+
+```bash
+pig -x local
+```
+
+You should see:
+
+```text
+grunt>
+```
+
+All the following queries must be executed inside this Pig prompt.
+
+---
+
+## QUERY 1 – Load Agriculture Dataset
+
+```pig
+agriculture = LOAD 'crop_production.csv'
+USING PigStorage(',')
+AS (
+    State_Name:chararray,
+    District_Name:chararray,
+    Crop_Year:int,
+    Season:chararray,
+    Crop:chararray,
+    Area:double,
+    Production:double
+);
+```
+
+Remove the header:
+
+```pig
+agriculture = FILTER agriculture BY State_Name != 'State_Name';
+```
+
+## QUERY 2 – Dump and Describe Dataset
+
+Describe the dataset:
+
+```pig
+DESCRIBE agriculture;
+```
+
+Display the first 10 records:
+
+```pig
+first10 = LIMIT agriculture 10;
+
+DUMP first10;
+```
+
+## QUERY 3 – Group All Records State-wise
+
+Group the dataset according to state:
+
+```pig
+state_group = GROUP agriculture BY State_Name;
+```
+
+Describe the grouped data:
+
+```pig
+DESCRIBE state_group;
+```
+
+Display the first five state groups:
+
+```pig
+first5states = LIMIT state_group 5;
+
+DUMP first5states;
+```
+
+**Note:** Avoid dumping the entire grouped dataset because the output can be very large.
+
+## QUERY 4 – Find Highest-produced Crop from Each State
+
+First, calculate the maximum production for each state:
+
+```pig
+max_production = FOREACH state_group GENERATE
+    group AS State_Name,
+    MAX(agriculture.Production) AS Highest_Production;
+```
+
+Display maximum production:
+
+```pig
+DUMP max_production;
+```
+
+Join the maximum production with the original dataset:
+
+```pig
+joined_data = JOIN agriculture BY (State_Name, Production),
+    max_production BY (State_Name, Highest_Production);
+```
+
+Extract the required details:
+
+```pig
+top_crops = FOREACH joined_data GENERATE
+    agriculture::State_Name AS State_Name,
+    agriculture::District_Name AS District_Name,
+    agriculture::Crop AS Crop,
+    agriculture::Production AS Production;
+```
+
+Display the final result:
+
+```pig
+DUMP top_crops;
+```
+
+**Expected columns:**
+
+```text
+(State_Name, District_Name, Crop, Production)
+```
+
+This identifies the crop record with the highest individual production value in each state.
+
+Note: If multiple records have the same maximum production, all matching records will appear.
+
+## QUERY 5 – Store Output on Local File System
+
+Store the result:
+
+```pig
+STORE top_crops INTO
+'/home/user/PigExperiment/top_crops_output'
+USING PigStorage(',');
+```
+
+Exit Pig:
+
+```pig
+quit;
+```
+
+Now you will return to the normal Ubuntu terminal.
+
+Create the required Desktop file:
+
+```bash
+cat ~/PigExperiment/top_crops_output/part-* > ~/Desktop/data_top.txt
+```
+
+Verify:
+
+```bash
+ls -lh ~/Desktop/data_top.txt
+```
+
+Display the contents:
+
+```bash
+head ~/Desktop/data_top.txt
+```
+
+The output file is:
+
+```text
+/home/user/Desktop/data_top.txt
+```
+
+## QUERY 6 – Transfer data_top.txt into HDFS
+
+Create an HDFS directory:
+
+```bash
+hdfs dfs -mkdir -p /pig_experiment
+```
+
+Upload the file:
+
+```bash
+hdfs dfs -put -f ~/Desktop/data_top.txt /pig_experiment/
+```
+
+Verify the uploaded file:
+
+```bash
+hdfs dfs -ls /pig_experiment
+```
+
+Display its contents:
+
+```bash
+hdfs dfs -cat /pig_experiment/data_top.txt
+```
+
+**PART 1 COMPLETED.**
+
+---
+
+# PART 2 – KAGGLE DATASET ANALYSIS
+
+## Dataset: Iris Flower Dataset
+
+Download the Iris dataset from Kaggle:
+
+https://www.kaggle.com/datasets/uciml/iris
+
+Extract the downloaded ZIP file and locate `Iris.csv`.
+
+## Step 1: Copy dataset into working directory
+
+Execute in Ubuntu terminal:
+
+```bash
+cp ~/Downloads/Iris.csv ~/PigExperiment/
+```
+
+Verify:
+
+```bash
+ls ~/PigExperiment
+```
+
+Inspect:
+
+```bash
+head -5 ~/PigExperiment/Iris.csv
+```
+
+The expected columns are:
+
+- Id
+- SepalLengthCm
+- SepalWidthCm
+- PetalLengthCm
+- PetalWidthCm
+- Species
+
+## Step 2: Start Pig in Local Mode
+
+```bash
+cd ~/PigExperiment
+
+pig -x local
+```
+
+## Step 3: Load Iris Dataset
+
+Inside `grunt>`:
+
+```pig
+iris = LOAD 'Iris.csv'
+USING PigStorage(',')
+AS (
+    Id:int,
+    SepalLength:double,
+    SepalWidth:double,
+    PetalLength:double,
+    PetalWidth:double,
+    Species:chararray
+);
+```
+
+Remove the header:
+
+```pig
+iris_data = FILTER iris BY Species != 'Species';
+```
+
+## QUERY 1 – Display Dataset
+
+```pig
+first10 = LIMIT iris_data 10;
+
+DUMP first10;
+```
+
+## QUERY 2 – Filter Flowers
+
+Find flowers having SepalLength greater than 5:
+
+```pig
+filtered = FILTER iris_data BY SepalLength > 5.0;
+
+DUMP filtered;
+```
+
+## QUERY 3 – Group Flowers by Species
+
+```pig
+grouped = GROUP iris_data BY Species;
+
+DUMP grouped;
+```
+
+## QUERY 4 – Count Flowers in Each Species
+
+```pig
+species_count = FOREACH grouped GENERATE
+    group AS Species,
+    COUNT(iris_data) AS Total_Count;
+
+DUMP species_count;
+```
+
+Expected result: Three species with approximately 50 records each.
+
+## QUERY 5 – Sort Flowers by Petal Length
+
+Sort in descending order:
+
+```pig
+sorted = ORDER iris_data BY PetalLength DESC;
+```
+
+Display the top 10 records:
+
+```pig
+top10 = LIMIT sorted 10;
+
+DUMP top10;
+```
+
+Exit Pig:
+
+```pig
+quit;
+```
+
+**PART 2 COMPLETED.**
+
+---
+
+# IMPORTANT PIG LATIN OPERATORS
+
+| Operator | Purpose |
+|---|---|
+| LOAD | Load dataset |
+| PigStorage | Read CSV files |
+| FILTER | Filter records |
+| DUMP | Display output |
+| DESCRIBE | Display schema |
+| LIMIT | Restrict number of records |
+| GROUP | Group records |
+| FOREACH | Iterate through records |
+| GENERATE | Select required fields |
+| MAX | Find maximum value |
+| JOIN | Combine datasets |
+| STORE | Save output |
+| ORDER | Sort records |
+| COUNT | Count records |
+| DISTINCT | Remove duplicates |
+
+---
+
+# PROBLEM STATEMENT
+
+To analyze agriculture-related data containing information about states, districts, crop years, seasons, crop names, cultivated areas and production using Apache Pig.
+
+The experiment also uses a Kaggle dataset to perform various Pig Latin operations such as filtering, grouping, sorting and counting to extract useful information.
+
+# CONCLUSION
+
+Thus, Apache Pig was successfully configured and executed in Local Mode. Pig Latin commands were used to load, describe, filter, group, analyze and store datasets. Agriculture data was analyzed to identify the highest-produced crops in different states, and the output was transferred to HDFS. Additional analytical queries were
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+cd ~
+java -version
+javac -version
+hadoop version
+pig -version
+echo $HADOOP_HOME
+echo $JAVA_HOME
+jps
+
+
+ls ~/Desktop
+find ~ -iname "crop_production.csv" 2>/dev/null
+mkdir -p ~/PigExperiment
+cd ~/PigExperiment
+mkdir -p ~/PigExperiment
+cd ~/PigExperiment
+pwd
+cp ~/Downloads/crop_production.csv ~/PigExperiment/
+
+pig -x local
+
+agriculture = LOAD 'crop_production.csv'
+USING PigStorage(',')
+AS (
+    State_Name:chararray,
+    District_Name:chararray,
+    Crop_Year:int,
+    Season:chararray,
+    Crop:chararray,
+    Area:double,
+    Production:double
+);
+
+agriculture = FILTER agriculture BY State_Name != 'State_Name';
+
+DESCRIBE agriculture;
+
+first10 = LIMIT agriculture 10;
+DUMP first10;
+
+DESCRIBE agriculture;
+
+state_group = GROUP agriculture BY State_Name;
+
+DUMP state_group;
+first5states = LIMIT state_group 5;
+DUMP first5states;
+
+max_production = FOREACH state_group GENERATE
+    group AS State_Name,
+    MAX(agriculture.Production) AS Highest_Production;
+    
+    DUMP max_production;
+    
+    
+    joined_data = JOIN agriculture BY (State_Name, Production),
+    max_production BY (State_Name, Highest_Production);
+    
+    
+    STORE top_crops INTO '/home/user/PigExperiment1/top_crops_output' USING PigStorage(',');
+    
+    quit;
+    
+    cat ~/PigExperiment1/top_crops_output/part-* > ~/Desktop/data_top.txt
+    
+    ls -lh ~/Desktop/data_top.txt
+    
+    head ~/Desktop/data_top.txt
+    
+    hdfs dfs -mkdir -p /pig_experiment
+    
+    hdfs dfs -put -f ~/Desktop/data_top.txt /pig_experiment/
+    
+    hdfs dfs -ls /pig_experiment
+    
+    hdfs dfs -cat /pig_experiment/data_top.txt
+    
+    
+    
+    
+
+
+-------------------------------------------------------------------------
+
+
+python3 --version
+pip3 --version
+java -version
+javac -version
+gcc --version
+g++ --version
+cd ~
+mkdir -p BloomFilterExperiment
+cd BloomFilterExperiment
+pwd
+
+
+cd ~/BloomFilterExperiment
+nano bloom_filter.py
+
+
+```python
+import hashlib
+import math
+
+
+class BloomFilter:
+
+    def __init__(self, expected_items, false_positive_rate):
+        self.size = int(
+            - (expected_items * math.log(false_positive_rate))
+            / (math.log(2) ** 2)
+        )
+
+        self.hash_count = int(
+            (self.size / expected_items) * math.log(2)
+        )
+
+        self.bit_array = [0] * self.size
+
+    def get_hashes(self, item):
+        hashes = []
+
+        for i in range(self.hash_count):
+            value = hashlib.sha256(
+                (str(i) + item).encode()
+            ).hexdigest()
+
+            hashes.append(int(value, 16) % self.size)
+
+        return hashes
+
+    def add(self, item):
+        for index in self.get_hashes(item):
+            self.bit_array[index] = 1
+
+    def check(self, item):
+        for index in self.get_hashes(item):
+            if self.bit_array[index] == 0:
+                return False
+
+        return True
+
+
+# Create Bloom Filter
+bloom = BloomFilter(100, 0.01)
+
+# Known malicious URLs
+malicious_urls = [
+    "http://fakebank-login.com",
+    "http://free-prize-win.com",
+    "http://malware-download.com",
+    "http://phishing-site.com",
+    "http://suspicious-offer.com"
+]
+
+# Insert URLs into Bloom Filter
+for url in malicious_urls:
+    bloom.add(url)
+
+print("========== BLOOM FILTER ==========")
+print("Application: Spam URL Detection")
+print("\nKnown malicious URLs inserted successfully!")
+
+# Test URLs
+test_urls = [
+    "http://fakebank-login.com",
+    "http://google.com",
+    "http://free-prize-win.com",
+    "http://amazon.com",
+    "http://safe-website.com",
+    "http://malware-download.com"
+]
+
+print("\n========== URL CHECKING RESULTS ==========")
+
+for url in test_urls:
+
+    if bloom.check(url):
+        print(url, "-> Possibly Malicious URL (Might be Present)")
+    else:
+        print(url, "-> Safe from Stored List (Definitely Not Present)")
+```
+python3 bloom_filter.py
+
+------------------------------------------------------------------------
+
+R --version
+Rscript --version
+rstudio --version
+
+
+rstudio
+mkdir -p ~/RExperiment7
+cd ~/RExperiment7
+nano data_analysis.R
+
+
+# EXPERIMENT 7
+# DATA ANALYSIS AND DATA VISUALIZATION USING R
+
+# 1. Load Dataset
+data(iris)
+
+# 2. Display Dataset
+print("FIRST 10 RECORDS")
+print(head(iris, 10))
+
+# 3. Dataset Structure
+print("DATASET STRUCTURE")
+str(iris)
+
+# 4. Summary Statistics
+print("SUMMARY STATISTICS")
+print(summary(iris))
+
+# 5. Check Missing Values
+print("MISSING VALUES")
+print(colSums(is.na(iris)))
+
+# 6. Species Count
+print("SPECIES COUNT")
+print(table(iris$Species))
+
+# 7. Average Measurements by Species
+print("AVERAGE MEASUREMENTS")
+print(aggregate(. ~ Species, data = iris, FUN = mean))
+
+# 8. Correlation Analysis
+print("CORRELATION MATRIX")
+print(cor(iris[, 1:4]))
+
+# Create folder for graphs
+dir.create("graphs", showWarnings = FALSE)
+
+# 9. Bar Chart
+png("graphs/bar_chart.png")
+barplot(table(iris$Species),
+        main = "Iris Species Count",
+        xlab = "Species",
+        ylab = "Count")
+dev.off()
+
+# 10. Histogram
+png("graphs/histogram.png")
+hist(iris$Sepal.Length,
+     main = "Sepal Length Distribution",
+     xlab = "Sepal Length",
+     col = "lightblue")
+dev.off()
+
+# 11. Scatter Plot
+png("graphs/scatter_plot.png")
+plot(iris$Sepal.Length, iris$Petal.Length,
+     main = "Sepal Length vs Petal Length",
+     xlab = "Sepal Length",
+     ylab = "Petal Length",
+     col = iris$Species,
+     pch = 19)
+legend("topleft",
+       legend = levels(iris$Species),
+       col = 1:3,
+       pch = 19)
+dev.off()
+
+# 12. Box Plot
+png("graphs/box_plot.png")
+boxplot(Petal.Length ~ Species,
+        data = iris,
+        main = "Petal Length by Species",
+        xlab = "Species",
+        ylab = "Petal Length")
+dev.off()
+
+print("DATA ANALYSIS AND VISUALIZATION COMPLETED!")
+
+Rscript data_analysis.R
+ls graphs
+xdg-open graphs
+
+rstudio
+data(iris)
+head(iris)
+summary(iris)
+plot(iris$Sepal.Length, iris$Petal.Length)
+
+
